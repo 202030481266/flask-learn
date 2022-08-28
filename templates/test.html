@@ -1,0 +1,191 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人页</title>
+    <style>
+        body {
+            background-image: url({{ url_for('static', filename='images/zero2.jpg') }});;
+            background-size: 100%;
+            background-repeat: no-repeat;
+            text-align: center;
+        }
+
+        .head {
+            width: 700px;
+            height: 140px;
+            position: sticky;
+            background-color: white;
+            text-align: center;
+            margin: auto;
+            display: flex;
+            flex-direction: row;
+        }
+
+        .meImage {
+            margin-top: 35px;
+            margin-left: 30px;
+            width: 70px;
+            height: 70px;
+            background-color: #DCDCDC;
+            border-radius: 50%;
+
+            border: 5px solid #87CEFA;
+
+        }
+
+        .info {
+            display: flex;
+            flex-direction: column;
+            margin: auto;
+            margin-left: 40px;
+            margin-right: 200px;
+            text-align: left;
+
+        }
+
+        .name {
+            font-size: 30px;
+            font-weight: bold;
+        }
+
+        .address {
+            margin: 5px 0;
+        }
+
+        .moreInfo {
+            margin: auto;
+            height: 30px;
+            width: 80px;
+            border-radius: 15px;
+            color: navy;
+            border-color: #87CEFA;
+            background-color: white;
+        }
+        .bodyout{
+
+            width: 700px;
+            margin:0 auto;
+        }
+        .body {
+            width: 700px;
+            background-color: #DCDCDC;
+
+
+            padding-top: 50px;
+            padding-bottom: 50px;
+            float: left;
+        }
+
+        .title {
+            width: 120px;
+            text-align: center;
+            font-size: 25px;
+            font-weight: bold;
+            margin-left: 25px;
+        }
+
+        .activitys {
+            /* width: 150px; */
+
+           float: left;
+            margin: 10px;
+
+
+        }
+
+        .activity {
+            width: 185px;
+            height: 180px;
+            text-align: center;
+            background-color: white;
+            margin: 10px 20px;
+            border-radius: 20px;
+            float: left;
+        }
+
+
+        .bodyImage {
+            width: 165px;
+            margin: 10px 10px;
+            height: 90px;
+            background-color: #DCDCDC;
+            border-radius: 10px;
+        }
+
+        .teams {
+            height: auto;
+            margin: 10px;
+        }
+
+        .team {
+            width: 185px;
+            height: 180px;
+            text-align: center;
+            background-color: white;
+            margin: 10px 20px;
+            border-radius: 20px;
+            float: left;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="person">
+        <div class="head">
+            <div class="meImage">
+               <img />
+            </div>
+            <div class="info">
+                <div class="name">
+                    {{ me.username }}
+                </div>
+                <div class="address">
+                    {{ me.college }}
+                </div>
+                <div class="id">
+                    ID :{{me.id}}
+                </div>
+            </div>
+        </div>
+        <div class="bodyout">
+            <div class="body">
+                <div v-if="act.length>0" class="title">
+                    我的活动
+                </div>
+                <div class="activitys">
+                    <div class="activity" v-for="(item,index) in act" :key="index">
+                        <div>
+                            {{item.name}}
+                        </div>
+                    </div>
+                </div>
+                <div v-if="team.length>0" class="title">
+                    我的组队
+                </div>
+                <div class="teams">
+                    <div class="team" v-for="(item,index1) in team" :key="index1">
+                        <div>
+                            {{item.name}}
+                        </div>
+
+                    </div>
+                </div>
+
+                <a href="{{ url_for('logout') }}">注销</a>
+
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
+
+</body>
+
+</html>

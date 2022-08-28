@@ -1,0 +1,6 @@
+{% import "bootstrap/google.html" as google %}
+
+{% block scripts %}
+  {{super()}}
+  {{google.uanalytics('U-XXXX-YY')}}
+{% endblock %}

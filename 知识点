@@ -1,0 +1,258 @@
+内容：
+    - 配置文件 使用文件的方式导入相关的配置 app.config.from_object(配置文件的路径)
+    - 路由
+        - app.add_url_rule(rule, view_func) 或者 装饰器
+        - 一些参数：
+             - methods 允许的请求的方式
+             - default 一个默认的参数的字典
+             - redirect_to 不论新的页面还是老的页面都是指引新的页面，可以用于版本的控制
+             - strict_slash 是否对url后面的斜杠严格
+             - subdomain 子域名 (相当于在顶级域名前面加入了子域名<name>)
+                - 顶级域名（汽车之家）autohome.com.cn
+                  子域名 mall.autohome.com.cn, dealer.autohome.com.cn
+                - 顶级域名（QQ) qq.com
+                  子域名 mail.qq.com (QQ邮箱), sports.qq.com(腾讯体育)
+                - app['SERVER_NAME'] = 'qq.com'
+                    @app.route('/index', subdomain="<name>") 相当于访问 name.qq.com
+             - url_for() 反向生成url，如果没有使用endpoint指定别名，那么函数名就是默认的别名
+    - 视图函数
+        - FBV 基于函数的视图 经典的视图函数实现形式，大多数的时候使用的是FBV
+        - 使用简单的函数不能发挥出python的面向对象的强大功能
+        - CBV 基于类的视图（使用了类来处理用户的请求，不同的请求我们可以在类中使用不同方法来处理）
+            - 类的里面实现了一个dispatch_request的函数来分配请求给不同的类函数处理
+            - 路由的映射要在add_url_rules方法里面手动添加 classname.as_view(name)
+    - 请求和响应
+        - request的参数：
+            - 常用：method, form, args, headers, cookies, files, path
+        - response相关:
+            - return string
+            - return render_template()
+            - return redirect()
+            - return jsonify() 返回json数据
+            - 区分响应头和响应体的返回类型：使用response对象
+                - response = make_response(响应体)
+                - response.set_cookies() 设置cookie信息
+                - response.headers 设置头部信息
+                - return response
+    - 模板
+        - { python语句 }
+        - 更加贴近于python的语法
+        - 返回函数的字符串：
+            - 默认：只显示字符串，不会渲染
+            - safe, Markup(string) 返回页面会渲染字符串内容
+        - @app.template_global() 装饰器可以把对应的函数放到每一个模板里面
+        - 模板支持继承 extends base.html
+    - session
+        - cookie 和 session 都是发送给浏览器里面，放在客户端里面保存，所以要加密，加密的时候要使用 secret_key
+        - obj['xxx'] 只要类重写了 __setitem__ 方法才能这样使用
+        - session 是一种特殊的字典对象 CallBackDict(dict)
+        - session从客户端发送的请求里面的cookie获取，源码分析：
+            - ctx = RequestContext(app, environ) 处理请求相关的数据 session = None
+            - self.session = self.app.open_session(self.request) 从请求里面获取值给 session 赋值
+                - val = request.cookies.get(app.session_cookie_name) 内部执行的过程
+            - dispatch_request 然后执行视图函数
+            - finalize_request()
+                - save_seesion()
+                    - 没有值的情况：保存session数据，把 session 序列化为字典，然后传进response对象中
+                    - 有值的情况：使用反序列化的方法把session字符串序列化为字典，然后传进response对象中
+    - 装饰器
+        - 特殊的装饰器 （类似于中间件）
+            - app.before_request   app.after_request（记得默认带有response参数）
+            - 多个before_request装饰函数和after_request装饰函数
+                - before_request:创建一个函数列表，然后执行的顺序就是遍历列表
+                - after_request:创建一个函数列表然后翻转，然后遍历列表
+                - 注意返回值的问题
+            - errorhandler()
+                - 例子：app.errorhandler(404)
+            - before_first_request
+    - 闪现
+        - 阅后即焚 （session可以完成）
+        - flash("", category)   data = get_flashed_messages()
+        - 存储只查看一次的数据
+    - 蓝图 blueprint 相当于一个子app
+        - 对flask程序文件进行目录划分
+        - 蓝图对象 Blueprint(name, import_name)
+        - 导入蓝图对象 app.register_blueprint()
+        - 两种方式：
+            - 共同使用一个 templates, static_folder
+            - 大型程序 分别使用自己的 templates，static_folder
+    - 中间件
+        - app.__call__ -> app.wsgi_app()
+        - 使用的情况不多。
+    - 扩展的知识点：
+        - 项目依赖 （依赖文件）
+            - 依赖库
+            - 版本控制
+            - requirements.txt （pip install -r requirements.txt） 一键安装
+        - 函数与方法：
+            - 取决于调用的对象是谁
+            - 类的调用就是函数
+            - 对象的调用就是方法
+    - functools
+        - def func(a1, a2, a3):
+            return a1 + a2 + a3
+          v1 = func(1, 2, 3)
+          new_func = functools.partial(func,111,2)
+          new_func(3)
+    - threading.local 一种特殊的对象
+        - 多个线程同时访问一个全局变量
+            - 锁变量
+            - 创建很多个上下文，给每一个线程开辟一个相互隔离的变量的空间 （threading.local的作用）
+        - 处理并发
+        - 使用字典实现（自定义local对象）：
+            - 使用线程的ID来创建键值对 （flask的内部的实现）
+            - 可以实现给每一个协程开辟空间
+    - 上下文管理
+        - 把资源放到一个地方，然后需要的时候就去取
+        - 程序里面只有两个LocalStack，所以也就是只有两个Local对象
+        - 创建的 ctx, app, g 的生命周期都是一个请求的周期，请求完成后就会销毁掉
+        - g的作用：权限管理，给不同的请求传值
+    - 组件
+        - flask-session
+            - from flask_session import RedisSessionInterface 导入文件
+            - session发生变化：第一级发生变化才认为发生变化，才会保存到cookie里面
+                - session['user_info'] = 123 调用了 session.__setitem__()
+                - session['user_info']['k1'] = 123 只是调用了 session.__getitem__()
+                - 强制改变 session['modified'] = True
+                - session.permanent = True, SESSION_REFRESH_EACH_REQUEST:True（redis默认） 推荐修改配置文件
+        - 数据库连接池 DBUtils （原生sql还是orm）
+            - pymysql
+            - 封装成一个数据库的类，使用静态方法 @staticmethod @classmethod
+            - 每一次使用数据库都要创建一个连接，那么可以提前生成一个连接池，有两种模式
+                - 给每一个线程创建一个连接，即使线程调用了close()方法连接也不会关闭，只是重新把连接重新放到连接池里面，
+                    供自己线程使用。当线程终止的时候，连接自动关闭。
+                - 创建一批连接放到连接池，供所有的线程共享使用。（通常使用的模式）
+                - 通过配置文件配置连接池的方法：
+                    - 通过使用初始化app函数的方法来初始化app，然后把连接池放到配置文件里面
+                    - 直接手动把整个连接池放到配置文件里面 （推荐食用）
+                    - 把 from .pool import Pool 放到视图函数执行阶段，这时app已经存在local对象里面
+        - wtforms 表单验证 （不止是在flask里面使用）
+            - 作用于python web进行表单验证
+            - wtforms支持的字段:
+                字段类型      说　　明
+                StringField 文本字段
+                TextAreaField 多行文本字段
+                PasswordField 密码文本字段
+                HiddenField 隐藏文本字段
+                DateField 文本字段，值为 datetime.date 格式
+                DateTimeField 文本字段，值为 datetime.datetime 格式
+                IntegerField 文本字段，值为整数
+                DecimalField 文本字段，值为 decimal.Decimal
+                FloatField 文本字段，值为浮点数
+                BooleanField 复选框，值为 True 和 False
+                RadioField 一组单选框
+                SelectField 下拉列表
+                SelectMultipleField 下拉列表，可选择多个值
+                FileField 文件上传字段
+                SubmitField 表单提交按钮
+                FormField 把表单作为字段嵌入另一个表单
+                FieldList 一组指定类型的字段
+            - 常见的验证函数：
+                验证函数 说　　明
+                Email 验证电子邮件地址
+                EqualTo 比较两个字段的值；常用于要求输入两次密码进行确认的情况
+                IPAddress 验证 IPv4 网络地址
+                Length 验证输入字符串的长度
+                NumberRange 验证输入的值在数字范围内
+                Optional 无输入值时跳过其他验证函数
+                Required 确保字段中有数据
+                Regexp 使用正则表达式验证输入值
+                URL 验证 URL
+                AnyOf 确保输入值在可选值列表中
+                NoneOf 确保输入值不在可选值列表中
+            - 实时更新数据：
+                - 初始化方法 重写__init__()方法
+                - 钩子函数 validate_field()
+            - 使用方法：
+                class MyForm(Form):
+                    user = 类(正则，插件)
+                    字段 = 类（正则，插件）
+                    字段 = 类（正则，插件）
+                    字段 = 类（正则，插件）
+                    字段 = 类（正则，插件）
+                    字段 = 类（正则，插件）
+                form = MyForm()
+                # 生成HTML标签
+                print(form.user) 调用了user所属的类的 __str__ => 插件.xx方法
+                # 验证
+                form = MyForm(formdata=request.form)
+                if form.validate():
+                    内部找到所有的字段：user + 用户传送过来的数据 ==》正则校验
+        - 面向对象知识点补充：
+            - __mro__ 方法：寻找多重继承的类的顺序
+            - __dict__ 方法：获取对象自己的东西
+            - 创建类的两种方法：
+                - class 声明 （默认由type类创建，Metaclass可以指定自定义的type类）
+                - type 创建声明
+            - Metaclass：
+                - 如果继承的类由某一个指定的metaclass创建，那么类也是通过指定的metaclass创建
+                - 执行的流程：
+                    - 0、MyType.__init__()
+                    obj = Foo()
+                    - 1、MyType.__call__()
+                    - 2、Foo.__new__()
+                    - 3、Foo.__init__()
+                - wtforms的面向对象实现：
+        - SQLAlchemy/flask-sqlalchemy
+            - 什么是orm：
+                1、关系对象映射。
+                2、类 -> 表
+                3、对象 -> 记录 （一行数据）
+                4、当有了对应的关系之后，就不需要写对应的具体的SQL语句，取而代之的是操作，类，对象。
+            - 两个概念
+                - db first 根据数据库的表生成类
+                - code first 根据类创建数据库的表
+            - sqlalchemy：SQLAlchemy是Python编程语言下的一款ORM框架，该框架建立在数据库API之上，使用关系对象映射进行数据库操作，
+                简言之便是：将对象转换成SQL，然后使用数据API执行SQL并获取执行结果。
+            -  默认带有连接池，max_overflow 参数可以设置最大的连接数量
+            - 创建时间不能使用 datetime.datetime.now() 要把括号去掉
+            - 时间更新的只需要属性 onupdate=datetime.now 即可
+            - 外键约束的问题：
+                - RESTRICT（默认），子表包含了父表的数据不能删除
+                - NO ACTION：相当于 RESTRICT
+                - CASCADE：级联删除。 （常用）
+                - SET NULL：父表对应数据被删除，子表对应数据项会设置为NULL。 （常用）
+        - pipreqs库进行项目打包：
+            - 进入到项目的根目录
+            - 安装pipreqs库
+            - pipreqs ./ --encoding=utf8
+        - flask-restful:
+            - 里面的location的定义：
+                _friendly_location = {
+                    u'json': u'the JSON body',
+                    u'form': u'the post body',
+                    u'args': u'the query string',
+                    u'values': u'the post body or the query string',
+                    u'headers': u'the HTTP headers',
+                    u'cookies': u'the request\'s cookies',
+                    u'files': u'an uploaded file',
+                }
+            -
+
+    - 架构
+        - MTV: Model Template View
+        - MVC: Model View Controller
+        - DAO: Data Access Object
+        - DDD: 领域驱动模型
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
