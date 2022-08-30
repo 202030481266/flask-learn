@@ -25,19 +25,10 @@ def load_user(id):
     return User.query.get(int(id))
 
 
-@app.route('/index?<string:username>')
+@app.route('/index/<string:username>')
 @login_required
 def index(username):
-    userdata = {
-        "id": 1,
-        "username": "xiaoshulin",
-        "college": "华南理工"
-    }
-    kwargs = {
-        "me": userdata,
-        "item": {"name": "活动"}
-    }
-    return render_template('test.html', **kwargs)
+    return 'Welcome'
 
 
 @app.route('/login', methods=['GET', 'POST'], endpoint='login')
