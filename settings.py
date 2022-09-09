@@ -1,4 +1,5 @@
 from datetime import timedelta
+from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 
 
 class BaseConfig(object):
@@ -39,6 +40,16 @@ class DevelopMentConfig(BaseConfig):
     SQLALCHEMY_TRACK_MODIFICATIONS = True
     SQLALCHEMY_POOL_SIZE = 20  # 设置并发池的大小
     SQLALCHEMY_COMMIT_ON_TEARDOWN = False
+
+    SCHEDULER_JOBSTORES = {
+        # set the database url for jobs
+        'default': SQLAlchemyJobStore(tablename='jobs',
+                                      url=SQLALCHEMY_DATABASE_URI)
+    }
+    SCHEDULER_API_ENABLED = True
+    SCHEDULER_TIMEZONE = 'Asia/Shanghai'
+    SCHEDULER_EXECUTORS = {"default": {"type": "threadpool", "max_workers": 20}}  # 默认使用ThreadPoolExecutor
+    SCHEDULER_JOB_DEFAULTS = {"coalesce": False, "max_instances": 3}  # 是否忽略服务器宕机时间段内的任务执行以及最大同时工作数量
 
 '''
  {

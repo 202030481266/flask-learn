@@ -228,7 +228,19 @@
                     u'files': u'an uploaded file',
                 }
             -
-
+    - flask-apscheduler:
+        - 管理flask里面的api的组件
+        - 默认提供的API：
+            scheduler.add_job                  POST                      /scheduler/jobs
+            scheduler.delete_job               DELETE                    /scheduler/jobs/<job_id>
+            scheduler.get_job                  GET                       /scheduler/jobs/<job_id>
+            scheduler.get_jobs                 GET                       /scheduler/jobs
+            scheduler.get_scheduler_info       GET                       /scheduler
+            scheduler.pause_job                POST                      /scheduler/jobs/<job_id>/pause
+            scheduler.resume_job               POST                      /scheduler/jobs/<job_id>/resume
+            scheduler.run_job                  POST                      /scheduler/jobs/<job_id>/run
+            scheduler.update_job               PATCH                     /scheduler/jobs/<job_id>
+        - 使用的时候使用init_app而不是直接传进app参数，否则出现bug
     - 架构
         - MTV: Model Template View
         - MVC: Model View Controller
