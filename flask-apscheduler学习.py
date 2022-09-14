@@ -4,52 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from settings import DevelopMentConfig
 from random import choice
 from datetime import datetime
-from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore as BaseSQLAlchemyJobStore
-from apscheduler.jobstores.base import BaseJobStore, JobLookupError, ConflictingIdError
-from apscheduler.util import maybe_ref, datetime_to_utc_timestamp, utc_timestamp_to_datetime
-from apscheduler.job import Job
-
-
-try:
-    import cPickle as pickle
-except ImportError:  # pragma: nocover
-    import pickle
-
-try:
-    from sqlalchemy import (
-        create_engine, Table, Column, MetaData, Unicode, Float, LargeBinary, select, and_)
-    from sqlalchemy.exc import IntegrityError
-    from sqlalchemy.sql.expression import null
-except ImportError:  # pragma: nocover
-    raise ImportError('SQLAlchemyJobStore requires SQLAlchemy installed')
-
-
-# 重写jobstore
-class SQLAlchemyJobStore(BaseSQLAlchemyJobStore):
-
-    def __init__(self, url=None, engine=None, tablename='apscheduler_jobs', metadata=None,
-                 pickle_protocol=pickle.HIGHEST_PROTOCOL, tableschema=None, engine_options=None):
-        super(BaseSQLAlchemyJobStore, self).__init__()
-        self.pickle_protocol = pickle_protocol
-        metadata = maybe_ref(metadata) or MetaData()
-
-        if engine:
-            self.engine = maybe_ref(engine)
-        elif url:
-            self.engine = create_engine(url, **(engine_options or {}))
-        else:
-            raise ValueError('Need either "engine" or "url" defined')
-
-        # 191 = max key length in MySQL for InnoDB/utf8mb4 tables,
-        # 25 = precision that translates to an 8-byte float
-        # set the primary key to as job_id
-        self.jobs_t = Table(
-            tablename, metadata,
-            Column('id', Unicode(191, _warn_on_bytestring=False)),
-            Column('next_run_time', Float(25), index=True),
-            Column('job_state', LargeBinary, nullable=False),
-            schema=tableschema
-        )  #
+from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 
 
 app = Flask(__name__)
@@ -87,10 +42,6 @@ class Job(db.Model):
 
     __tablename__ = 'jobs'
     __table_args__ = {'extend_existing': True}  # refine the table
-    job_id = db.Column('card_id', db.Integer, primary_key=True, autoincrement=True)
-
-    def get_job_id(self):
-        return self.job_id
 
 
 def my_work(job_id, card_id):
@@ -133,8 +84,14 @@ def get_jobs():
     # print(job_data)
     job_objects = db.session.query(Job).all()
     for obj in job_objects:
-        print(obj.get_job_id())
+        print(obj.id)
     return 'success'
+
+
+@app.route('/remove/<job_id>')
+def remove(job_id):
+    scheduler.remove_job(id=job_id)
+    return 'remove success'
 
 
 scheduler = APScheduler()

@@ -241,6 +241,22 @@
             scheduler.run_job                  POST                      /scheduler/jobs/<job_id>/run
             scheduler.update_job               PATCH                     /scheduler/jobs/<job_id>
         - 使用的时候使用init_app而不是直接传进app参数，否则出现bug
+        - scheduler常用的dao函数
+            scheduler.start()
+            scheduler.shutdown()
+            scheduler.pause() > stops any job from starting. Already running jobs not affected.
+            scheduler.resume() > allows scheduled jobs to begin running.
+            scheduler.add_listener(<callback function>,<event>)            
+            scheduler.remove_listener(<callback function>)
+            scheduler.add_job(<id>,<function>, **kwargs)
+            scheduler.remove_job(<id>, **<jobstore>)
+            scheduler.remove_all_jobs(**<jobstore>)
+            scheduler.get_job(<id>,**<jobstore>)
+            scheduler.modify_job(<id>,**<jobstore>, **kwargs)
+            scheduler.pause_job(<id>, **<jobstore>)
+            scheduler.resume_job(<id>, **<jobstore>)
+            scheduler.run_job(<id>, **<jobstore>)
+            scheduler.authenticate(<function>)
     - 架构
         - MTV: Model Template View
         - MVC: Model View Controller
